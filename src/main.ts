@@ -7,7 +7,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.enableCors({
     //origin: 'http://localhost:5173',
-    origin: 'frontend-challenge-ecommerce.netlify.app',
+    origin: 'https://frontend-challenge-ecommerce.netlify.app',
     credentials: true,
   });
   await app.listen(process.env.PORT);
