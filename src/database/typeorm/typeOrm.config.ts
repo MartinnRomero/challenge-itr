@@ -8,30 +8,28 @@ const envFilePath: string = getEnvPath(
 );
 config({ path: envFilePath });
 
-//TODO para correr de forma local leer readme.md
-export const dataSourceOptions: DataSourceOptions = {
-  type: 'postgres',
-  host: process.env.DATABASE_HOST,
-  port: parseInt(process.env.DATABASE_PORT, 10),
-  database: process.env.DATABASE_NAME,
-  username: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
-  entities: [process.env.DATABASE_ENTITIES],
-  migrations: ['dist/database/migration/history/*.js'],
-  logger: 'simple-console',
-  synchronize: false, // never use TRUE in production!
-  logging: true, // for debugging in dev Area only
-};
-
-
-//TODO para correr de forma local descomentar este codigo
 // export const dataSourceOptions: DataSourceOptions = {
 //   type: 'postgres',
-//   url: process.env.DATABASE_URL,
-//   ssl: { rejectUnauthorized: false },
+//   host: process.env.DATABASE_HOST,
+//   port: parseInt(process.env.DATABASE_PORT, 10),
+//   database: process.env.DATABASE_NAME,
+//   username: process.env.DATABASE_USER,
+//   password: process.env.DATABASE_PASSWORD,
 //   entities: [process.env.DATABASE_ENTITIES],
 //   migrations: ['dist/database/migration/history/*.js'],
 //   logger: 'simple-console',
-//   synchronize: false,
-//   logging: true,
+//   synchronize: false, // never use TRUE in production!
+//   logging: true, // for debugging in dev Area only
 // };
+
+
+export const dataSourceOptions: DataSourceOptions = {
+  type: 'postgres',
+  url: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  entities: [process.env.DATABASE_ENTITIES],
+  migrations: ['dist/database/migration/history/*.js'],
+  logger: 'simple-console',
+  synchronize: false,
+  logging: true,
+};
