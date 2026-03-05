@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { RoleIds } from '../../role/enum/role.enum';
-import { CreateProductDto, ProductDetailsDto } from '../dto/product.dto';
+import { CreateProductDto, CreateProductVariationDto, CreateProductVariationPriceDto, ProductDetailsDto } from '../dto/product.dto';
 import { ProductService } from '../services/product.service';
 import { Auth } from 'src/api/auth/guards/auth.decorator';
 import { FindOneParams } from 'src/common/helper/findOneParams.dto';
@@ -10,6 +10,11 @@ import { User } from 'src/database/entities/user.entity';
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
+
+  @Get()
+  async getProducts() {
+    return this.productService.getAllProducts();
+  }
 
   @Get(':id')
   async getProduct(@Param() product: FindOneParams) {
@@ -51,5 +56,14 @@ export class ProductController {
     @CurrentUser() user: User,
   ) {
     return this.productService.deleteProduct(product.id, user.id);
+  }
+
+  @Auth(RoleIds.Admin, RoleIds.Merchant)
+  @Post('variation/create')
+  async createProductVariation(
+    @Body() body: CreateProductVariationDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.productService.createProductVariation(user.id, body);
   }
 }

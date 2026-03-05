@@ -12,16 +12,16 @@ export const configuration = () => ({
   database: {
     host: process.env.DATABASE_HOST || 'localhost',
     port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
-    name: process.env.DATABASE_NAME || 'ecommercedb',
-    user: process.env.DATABASE_USER || 'hassan',
-    password: process.env.DATABASE_PASSWORD || 'password',
-    entities: process.env.DATABASE_ENTITIES || 'dist/**/*.entity.{ts,js}',
+    name: process.env.DATABASE_NAME,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PASSWORD,
+    entities: process.env.DATABASE_ENTITIES,
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'secret',
+    secret: process.env.JWT_SECRET,
   },
   adminUser: {
-    email: process.env.ADMIN_EMAIL || 'admin@admin.com',
-    password: process.env.ADMIN_PASSWORD || '12345678',
+    email: process.env.ADMIN_EMAIL,
+    password: process.env.ADMIN_PASSWORD,
   },
 });

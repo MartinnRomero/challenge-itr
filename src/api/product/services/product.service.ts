@@ -3,28 +3,32 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DeleteResult, EntityManager } from 'typeorm';
+import { EntityManager } from 'typeorm';
 import { InjectEntityManager } from '@nestjs/typeorm';
-import { CreateProductDto, ProductDetailsDto } from '../dto/product.dto';
+import { CreateProductDto, CreateProductVariationDto, ProductDetailsDto } from '../dto/product.dto';
 import { Category } from '../../../database/entities/category.entity';
-import { Product } from 'src/database/entities/product.entity';
 import { errorMessages } from 'src/errors/custom';
 import { validate } from 'class-validator';
 import { successObject } from 'src/common/helper/sucess-response.interceptor';
+import { ProductRepository } from '../repositories/product.repository';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectEntityManager()
     private readonly entityManager: EntityManager,
+    private readonly productRepository: ProductRepository,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  async getAllProducts() {
+    const products = await this.productRepository.findAll();
+    return products;
+  }
+
   async getProduct(productId: number) {
-    const product = await this.entityManager.findOne(Product, {
-      where: {
-        id: productId,
-      },
-    });
+    const product = await this.productRepository.findById(productId);
 
     if (!product) throw new NotFoundException(errorMessages.product.notFound);
 
@@ -40,12 +44,19 @@ export class ProductService {
 
     if (!category) throw new NotFoundException(errorMessages.category.notFound);
 
-    const product = await this.entityManager.create(Product, {
+    const product = this.productRepository.create({
       category,
       merchantId,
+      ...data,
     });
 
-    return this.entityManager.save(product);
+    const productSaved = await this.productRepository.save(product);
+
+    this.eventEmitter.emit('product.created', {
+      productId: product.id,
+    });
+
+    return productSaved;
   }
 
   async addProductDetails(
@@ -53,45 +64,33 @@ export class ProductService {
     body: ProductDetailsDto,
     merchantId: number,
   ) {
-    const result = await this.entityManager
-      .createQueryBuilder()
-      .update<Product>(Product)
-      .set({
-        ...body,
-      })
-      .where('id = :id', { id: productId })
-      .andWhere('merchantId = :merchantId', { merchantId })
-      .returning(['id'])
-      .execute();
-    if (result.affected < 1)
-      throw new NotFoundException(errorMessages.product.notFound);
-    return result.raw[0];
+    const updated = await this.productRepository.updateDetails(
+      productId,
+      merchantId,
+      body,
+    );
+
+    if (!updated) throw new NotFoundException(errorMessages.product.notFound);
+
+    return updated;
   }
 
   async activateProduct(productId: number, merchantId: number) {
     if (!(await this.validate(productId)))
       throw new ConflictException(errorMessages.product.notFulfilled);
 
-    const result = await this.entityManager
-      .createQueryBuilder()
-      .update<Product>(Product)
-      .set({
-        isActive: true,
-      })
-      .where('id = :id', { id: productId })
-      .andWhere('merchantId = :merchantId', { merchantId })
-      .returning(['id', 'isActive'])
-      .execute();
+    const updated = await this.productRepository.activateProduct(
+      productId,
+      merchantId,
+    );
 
-    return result.raw[0];
+    if (!updated) throw new NotFoundException(errorMessages.product.notFound);
+
+    return updated;
   }
 
   async validate(productId: number) {
-    const product = await this.entityManager.findOne(Product, {
-      where: {
-        id: productId,
-      },
-    });
+    const product = await this.productRepository.findById(productId);
     if (!product) throw new NotFoundException(errorMessages.product.notFound);
     const errors = await validate(product);
 
@@ -101,17 +100,38 @@ export class ProductService {
   }
 
   async deleteProduct(productId: number, merchantId: number) {
-    const result = await this.entityManager
-      .createQueryBuilder()
-      .delete()
-      .from(Product)
-      .where('id = :productId', { productId })
-      .andWhere('merchantId = :merchantId', { merchantId })
-      .execute();
+    const deleted = await this.productRepository.deleteByIdAndMerchant(
+      productId,
+      merchantId,
+    );
 
-    if (result.affected < 1)
+    if (!deleted)
       throw new NotFoundException(errorMessages.product.notFound);
 
     return successObject;
+  }
+
+  async createProductVariation(
+    merchantId: number,
+    body: CreateProductVariationDto,
+  ) {
+    const product = await this.productRepository.findById(body.productId);
+
+    if (!product || product.merchantId !== merchantId) {
+      throw new NotFoundException(errorMessages.product.notFound);
+    }
+
+    const variation = await this.productRepository.createProductVariation({
+      ...body
+    });
+
+    console.log(variation);
+    const productVariationSaved = await this.productRepository.saveProductVariation(variation);
+
+    this.eventEmitter.emit('product.variation.created', {
+      productVariationId: productVariationSaved.id,
+    });
+
+    return productVariationSaved;
   }
 }

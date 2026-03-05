@@ -6,10 +6,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from '../user/user.module';
 import { User } from '../../database/entities/user.entity';
 import { Product } from 'src/database/entities/product.entity';
+import { ProductRepository } from './repositories/product.repository';
+import { ProductEventsService } from './services/product-events.service';
+import { EventsModule } from '../events/events.module';
+import { ProductVariation } from 'src/database/entities/productVariation.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Product, Category]), UserModule],
+  imports: [TypeOrmModule.forFeature([User, Product, Category, ProductVariation]), UserModule, EventsModule],
   controllers: [ProductController],
-  providers: [ProductService],
+  providers: [ProductService, ProductRepository, ProductEventsService],
 })
 export class ProductModule {}
