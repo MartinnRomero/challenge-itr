@@ -89,6 +89,14 @@ y luego comentar el siguiente codigo (Para utilizar la conexion con supabase)
  };
 ```
 
+## Para realizar pruebas de forma local cambiar el CORS a localhost 
+```
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  });
+```
+
 ## Datos de arquitectura
 - [Arquitectura](./arquitectura_cambios.md)
 
