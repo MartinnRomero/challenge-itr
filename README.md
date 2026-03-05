@@ -89,6 +89,9 @@ y luego comentar el siguiente codigo (Para utilizar la conexion con supabase)
  };
 ```
 
+## Datos de arquitectura
+- [Arquitectura](./arquitectura_cambios.md)
+
 ## Testing
 To run the tests, follow these steps:
 1. Install dependencies: `npm install`
